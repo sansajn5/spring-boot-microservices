@@ -1,2 +1,11 @@
 server:
-  port: 8081
+  port: 8200
+
+spring:
+  application:
+    name: auth-service
+
+eureka:
+  client:
+    service-url:
+      default-zone: http://localhost:8761/eureka

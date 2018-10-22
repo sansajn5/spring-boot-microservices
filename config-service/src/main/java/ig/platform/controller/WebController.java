@@ -1,36 +1,46 @@
 package ig.platform.controller;
 
-import ig.platform.dto.User;
-import ig.platform.service.EmailService;
-import ig.platform.service.UserService;
+import ig.platform.models.Gallery;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
 public class WebController {
 
     @Autowired
-    private UserService userService;
+    private RestTemplate restTemplate;
+
     @Autowired
-    private EmailService emailService;
+    private Environment env;
 
-    @GetMapping("/user/{id}")
-    public User getUser(@PathVariable int id) {
-        return userService.getUserById(id);
+    @GetMapping()
+    public String home() {
+        return "from config service";
     }
 
-    @RequestMapping(value = "/user/", method = RequestMethod.POST)
-    public ResponseEntity<String> sendEmail(@RequestBody User user) {
-        userService.sendEmail(user);
-        return new ResponseEntity<>("Email Successfully sent", HttpStatus.OK);
+    @GetMapping("/admin")
+    public String homeAdmin() {
+        return "This is the admin area of Gallery service running at port: " + env.getProperty("local.server.port");
     }
 
-    @RequestMapping(value = "/email/{toAddress}", method = RequestMethod.POST)
-    public ResponseEntity<Void> sendEmail(@PathVariable String toAddress) {
-        emailService.sendEmail(toAddress);
-        return new ResponseEntity<Void>(HttpStatus.OK);
+    @GetMapping("/{id}")
+    public Gallery getGallery(@PathVariable final int id) {
+        // create gallery object
+        Gallery gallery = new Gallery();
+        gallery.setId(id);
+
+        // get list of available images
+        List<Object> images = restTemplate.getForObject("http://auth-service/images/", List.class);
+        gallery.setImages(images);
+
+        return gallery;
     }
 }
